@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IQUEST - Interactive Geometry Learning Tool</title>
+    <style>
+        :root {
+            --primary: #00f0ff;        /* Electric Cyan */
+            --primary-glow: rgba(0, 240, 255, 0.35);
+            --secondary: #fbbf24;      /* Radiant Gold/Amber */
+            --secondary-glow: rgba(251, 191, 36, 0.35);
+            --accent: #10b981;         /* Tech Green */
+            --bg-dark: #020617;        /* Deep Obsidian */
+            --card-glass: rgba(15, 23, 42, 0.92);
+            --text-color: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Interactive Geometry Background Canvas */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            will-change: transform;
+        }
+
+        /* Header Navigation */
+        header {
+            background: rgba(2, 6, 23, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+            color: white;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+        }
+
+        /* 3-Dash Hamburger Button (Top-Left) */
+        .hamburger-btn {
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.35);
+            color: var(--primary);
+            font-size: 1.4rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .hamburger-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Mobile Slide-Out Drawer */
+        .nav-links {
+            position: fixed;
+            top: 60px;
+            left: -100%;
+            width: 260px;
+            height: calc(100vh - 60px);
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(0, 240, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            padding: 18px 12px;
+            gap: 10px;
+            list-style: none;
+            z-index: 999;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+            transition: left 0.25s ease-in-out;
+        }
+
+        .nav-links.open {
+            left: 0;
+        }
+
+        .nav-links button {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 12px 14px;
+            border-radius: 10px;
+            text-align: left;
+            width: 100%;
+            min-height: 44px;
+        }
+
+        .nav-links button.active {
+            color: var(--primary);
+            background: rgba(0, 240, 255, 0.15);
+            border-color: rgba(0, 240, 255, 0.5);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-box {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #020617;
+            font-weight: 900;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            letter-spacing: 1.5px;
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        /* Music Controls */
+        .audio-toggle-btn {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--accent);
+            color: #34d399;
+            padding: 5px 9px;
+            border-radius: 14px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            min-height: 36px;
+        }
+
+        .audio-toggle-btn span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+
+        .audio-toggle-btn.muted {
+            background: rgba(248, 113, 113, 0.15);
+            border-color: #f87171;
+            color: #f87171;
+        }
+
+        .audio-toggle-btn.muted span {
+            background: #f87171;
+            box-shadow: none;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.4); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            width: 95%;
+            max-width: 950px;
+            margin: 12px auto;
+            background: var(--card-glass);
+            backdrop-filter: blur(16px);
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Header */
+        .hero {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-size: 1.7rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 0.86rem;
+            color: #94a3b8;
+            line-height: 1.4;
+            margin-bottom: 14px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            color: #020617;
+            border: none;
+            padding: 12px 16px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            min-height: 46px;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), #d97706);
+            color: #020617;
+            box-shadow: 0 4px 12px var(--secondary-glow);
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid var(--primary);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .content-card h3 {
+            color: var(--primary);
+            margin-bottom: 6px;
+            font-size: 1.1rem;
+        }
+
+        .content-card p {
+            line-height: 1.45;
+            color: #cbd5e1;
+            font-size: 0.86rem;
+        }
+
+        .polya-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .polya-box {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed rgba(0, 240, 255, 0.3);
+        }
+
+        .polya-box h4 {
+            color: var(--secondary);
+            margin-bottom: 4px;
+            font-size: 0.92rem;
+        }
+
+        .polya-box p {
+            color: #94a3b8;
+            font-size: 0.82rem;
+        }
+
+        .geometry-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .geo-box {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .geo-box h4 {
+            color: var(--text-color);
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .formula-box {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 6px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+            word-break: break-word;
+        }
+
+        .img-placeholder {
+            width: 100%;
+            height: 100px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-top: 8px;
+            border: 2px dashed rgba(255, 255, 255, 0.12);
+        }
+
+        /* Sub-Navigation */
+        .sub-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .sub-btn {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #94a3b8;
+            text-align: center;
+            width: 100%;
+            min-height: 44px;
+        }
+
+        .sub-btn.active {
+            background: var(--secondary);
+            color: #020617;
+            border-color: var(--secondary);
+            font-weight: 700;
+            box-shadow: 0 0 10px var(--secondary-glow);
+        }
+
+        .sub-section {
+            display: none;
+        }
+
+        .sub-section.active {
+            display: block;
+        }
+
+        /* Quizzes & Practice */
+        .problem-item, .quiz-question-card {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .problem-item h4, .quiz-question-card h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .problem-item p, .quiz-question-card p {
+            color: #cbd5e1;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .solution-box {
+            margin-top: 8px;
+            padding: 10px;
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid var(--accent);
+            display: none;
+            border-radius: 6px;
+            color: #34d399;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .quiz-options {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .quiz-options label {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            min-height: 44px;
+        }
+
+        /* Key to Correction Box */
+        .key-correction-box {
+            background: rgba(15, 23, 42, 0.96);
+            border: 2px dashed var(--secondary);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 18px;
+            display: none;
+        }
+
+        .key-correction-box h3 {
+            color: var(--secondary);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .key-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.84rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .key-item strong {
+            color: var(--primary);
+        }
+
+        /* Escape Room */
+        .escape-room-box {
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            color: white;
+            padding: 18px 12px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            border: 2px solid var(--secondary);
+        }
+
+        .escape-input {
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            width: 100%;
+            max-width: 220px;
+            text-align: center;
+            margin-top: 10px;
+            background: #020617;
+            color: white;
+            outline: none;
+            min-height: 46px;
+        }
+
+        .extra-hint-box {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px dashed var(--secondary);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            color: #fef08a;
+            display: none;
+            font-size: 0.82rem;
+        }
+
+        .reward-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(251, 191, 36, 0.25));
+            border: 2px double var(--secondary);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 14px;
+            display: none;
+        }
+
+        .reward-card h2 {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+
+        .reward-card h3 {
+            font-size: 1rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 14px 10px;
+            color: #94a3b8;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        @media(min-width: 768px) {
+            .polya-grid { grid-template-columns: repeat(2, 1fr); }
+            .geometry-container { grid-template-columns: repeat(2, 1fr); }
+            .hero-buttons { flex-direction: row; justify-content: center; }
+            .btn { width: auto; }
+            .sub-nav { flex-direction: row; flex-wrap: wrap; }
+            .sub-btn { width: auto; }
+            .hero h1 { font-size: 2.4rem; }
+            main { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated Canvas Background -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Header Navigation Bar -->
+    <header>
+        <!-- 3-Dash Menu Icon (Top-Left) -->
+        <button class="hamburger-btn" onclick="toggleMenu()" aria-label="Toggle Navigation">☰</button>
+        
+        <div class="logo-container">
+            <button id="audioToggleBtn" class="audio-toggle-btn" onclick="toggleContinuousAudio()">
+                <span></span> <span id="audioStatusText">Music: ON</span>
+            </button>
+            <div class="logo-box">IQUEST</div>
+        </div>
+    </header>
+
+    <!-- Mobile Slide Drawer -->
+    <ul class="nav-links" id="mobileNav">
+        <li><button onclick="switchTab('home')" class="nav-btn active" id="btn-home">Home</button></li>
+        <li><button onclick="switchTab('information')" class="nav-btn" id="btn-information">Information</button></li>
+        <li><button onclick="switchTab('game')" class="nav-btn" id="btn-game">Game</button></li>
+        <li><button onclick="switchTab('video')" class="nav-btn" id="btn-video">Video Lesson</button></li>
+        <li><button onclick="switchTab('about')" class="nav-btn" id="btn-about">About</button></li>
+    </ul>
+
+    <!-- Main Container -->
+    <main>
+
+        <!-- HOME SECTION -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <h1>Welcome to IQUEST</h1>
+                <p>Interactive mobile-optimized learning tool for mastering routine and real-life non-routine geometry problem-solving toward college readiness.</p>
+                <div class="hero-buttons">
+                    <button class="btn" onclick="switchTab('game'); switchSubGame('quiz-routine');">Quiz Game</button>
+                    <button class="btn btn-secondary" onclick="switchTab('information')">Explore Information</button>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3>Routine vs. Non-Routine Real-Life Geometry</h3>
+                <p><strong>Routine Problems:</strong> Direct formula application and standard algorithmic procedures.</p>
+                <p style="margin-top: 6px;"><strong>Non-Routine Real-Life Applications:</strong> Contextualized practical tasks requiring critical thinking, heuristic strategies, and spatial reasoning.</p>
+            </div>
+
+            <div class="content-card">
+                <h3>Problem-Solving Guides & Heuristics</h3>
+                <p style="margin-bottom: 8px;">Select strategy guide:</p>
+                
+                <div class="sub-nav" style="border-bottom: none; padding-bottom: 0;">
+                    <button class="sub-btn active" onclick="switchGuide('routine')" id="guide-btn-routine">Routine Guide (Polya)</button>
+                    <button class="sub-btn" onclick="switchGuide('nonroutine')" id="guide-btn-nonroutine">Non-Routine Guide</button>
+                </div>
+
+                <div id="guide-routine" class="guide-content">
+                    <p style="margin-bottom: 6px; color: var(--primary);"><strong>George Polya's 4-Step Strategy:</strong></p>
+                    <div class="polya-grid">
+                        <div class="polya-box">
+                            <h4>Step 1</h4>
+                            <p><strong>Understand the Problem:</strong> Identify given values, unknowns, and basic conditions.</p>
+                        </div>
+                        <div class="polya-box">
+                            <h4>Step 2</h4>
+                            <p><strong>Devise a Plan:</strong> Select the correct standard formula or theorem.</p>
+                        </div>
+                        <div class="polya-box">
+                            <h4>Step 3</h4>
+                            <p><strong>Carry Out the Plan:</strong> Execute mathematical calculations accurately.</p>
+                        </div>
+                        <div class="polya-box">
+                            <h4>Step 4</h4>
+                            <p><strong>Look Back:</strong> Check computation steps, verify units, and validate accuracy.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="guide-nonroutine" class="guide-content" style="display: none;">
+                    <p style="margin-bottom: 6px; color: var(--secondary);"><strong>Non-Routine Heuristic Strategies:</strong></p>
+                    <div class="polya-grid">
+                        <div class="polya-box">
+                            <h4>Heuristic 1</h4>
+                            <p><strong>Draw a Diagram / Visualize:</strong> Sketch real-life spatial relationships (e.g., Tabaco Port vectors or church rooftops).</p>
+                        </div>
+                        <div class="polya-box">
+                            <h4>Heuristic 2</h4>
+                            <p><strong>Look for a Pattern:</strong> Examine sequence changes, tiling arrangements, or repetitive structures.</p>
+                        </div>
+                        <div class="polya-box">
+                            <h4>Heuristic 3</h4>
+                            <p><strong>Work Backwards:</strong> Trace from target real-world goal state back to initial conditions.</p>
+                        </div>
+                        <div class="polya-box">
+                            <h4>Heuristic 4</h4>
+                            <p><strong>Solve a Simpler Sub-Problem:</strong> Deconstruct complex real-world dimensions into manageable parts.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3>Geometry Core Concepts</h3>
+                <div class="geometry-container">
+                    <div class="geo-box">
+                        <h4>Two-Dimensional (2D) Shapes</h4>
+                        <div class="formula-box">Area of Circle = πr²<br>Area of Triangle = ½ × b × h</div>
+                        <div class="img-placeholder">[ 2D Geometry Diagram ]</div>
+                    </div>
+                    <div class="geo-box">
+                        <h4>Three-Dimensional (3D) Solids</h4>
+                        <div class="formula-box">Volume of Cylinder = πr²h<br>Volume of Sphere = (4/3)πr³</div>
+                        <div class="img-placeholder">[ 3D Solid Diagram ]</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INFORMATION SECTION -->
+        <section id="information" class="section">
+            <div class="hero">
+                <h1>College Readiness in Geometry</h1>
+                <p>Foundational geometry domains for First-Year BSED Mathematics students at Bicol University Tabaco Campus.</p>
+            </div>
+
+            <div class="content-card">
+                <h3>Parts of Geometry for BSED Math Majors</h3>
+                <br>
+                <ul style="margin-left: 16px; line-height: 1.6; color: #cbd5e1; font-size: 0.85rem;">
+                    <li><strong>Axiomatic Systems & Incidence Geometry:</strong> Defined/undefined terms, postulates, and deductive frameworks.</li>
+                    <li><strong>Euclidean & Non-Euclidean Geometry:</strong> Parallel postulates, spherical, and hyperbolic geometries.</li>
+                    <li><strong>Transformation Geometry:</strong> Rigid motions (translations, reflections, rotations) and similarity transformations.</li>
+                    <li><strong>Coordinate & Analytical Geometry:</strong> Vector spaces, conic sections, and algebraic geometry proofs.</li>
+                    <li><strong>Rigorous Proof Techniques:</strong> Direct proofs, proof by contradiction, and geometric constructions.</li>
+                </ul>
+            </div>
+
+            <div class="content-card">
+                <h3>Contextualized Example (Tabaco Albay)</h3>
+                <p><strong>Scenario:</strong> A passenger ferry leaves Tabaco City Port heading North for 12 km while a fishing vessel heads East for 5 km. What is the direct distance between them?</p>
+                <div class="formula-box">
+                    <strong>Solution (Pythagorean Theorem):</strong><br>
+                    Distance² = 12² + 5² = 144 + 25 = 169.<br>
+                    Distance = √169 = <strong>13 kilometers</strong>.
+                </div>
+            </div>
+        </section>
+
+        <!-- GAME SECTION -->
+        <section id="game" class="section">
+            <div class="hero">
+                <h1>Interactive Games & Practice</h1>
+                <p>Select your task below:</p>
+            </div>
+
+            <div class="sub-nav">
+                <button class="sub-btn active" onclick="switchSubGame('quiz-routine')" id="sub-btn-quiz-routine">1. Routine Quiz (15 Items)</button>
+                <button class="sub-btn" onclick="switchSubGame('quiz-nonroutine')" id="sub-btn-quiz-nonroutine">2. Non-Routine Quiz (10 Items)</button>
+                <button class="sub-btn" onclick="switchSubGame('escape')" id="sub-btn-escape">3. Edu-Escape Room (5 Rooms + Master Vault)</button>
+                <button class="sub-btn" onclick="switchSubGame('practice-routine')" id="sub-btn-practice-routine">4. Routine Practice (15 Items)</button>
+                <button class="sub-btn" onclick="switchSubGame('practice-nonroutine')" id="sub-btn-practice-nonroutine">5. Non-Routine Practice (10 Items)</button>
+            </div>
+
+            <!-- SUB 1: ROUTINE QUIZ -->
+            <div id="sub-quiz-routine" class="sub-section active">
+                <div class="content-card">
+                    <h3>Routine Geometry Quiz (15 Questions)</h3>
+                    <div id="quiz-routine-container"></div>
+                    <button class="btn" style="margin-top: 12px;" onclick="submitRoutineQuiz()">Submit Routine Quiz</button>
+                    <p id="routine-quiz-result" style="margin-top: 10px; font-weight: bold; font-size: 1rem;"></p>
+                    
+                    <!-- Key to Correction Box -->
+                    <div id="key-correction-routine" class="key-correction-box">
+                        <h3>🔑 Key to Correction & Explanation (Routine Quiz)</h3>
+                        <div id="key-routine-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB 2: NON-ROUTINE QUIZ -->
+            <div id="sub-quiz-nonroutine" class="sub-section">
+                <div class="content-card">
+                    <h3>Non-Routine Real-Life Quiz (10 Questions)</h3>
+                    <div id="quiz-nonroutine-container"></div>
+                    <button class="btn btn-secondary" style="margin-top: 12px;" onclick="submitNonRoutineQuiz()">Submit Non-Routine Quiz</button>
+                    <p id="nonroutine-quiz-result" style="margin-top: 10px; font-weight: bold; font-size: 1rem;"></p>
+                    
+                    <!-- Key to Correction Box -->
+                    <div id="key-correction-nonroutine" class="key-correction-box">
+                        <h3>🔑 Key to Correction & Explanation (Non-Routine Quiz)</h3>
+                        <div id="key-nonroutine-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB 3: 5-ROOM EDU-ESCAPE ROOM + SECRET MASTER VAULT -->
+            <div id="sub-escape" class="sub-section">
+                <div class="escape-room-box">
+                    <h2 id="escape-title" style="color: var(--secondary); margin-bottom: 8px; font-size: 1.1rem;">🚪 Room 1: Tabaco Port Ferry Gate (Routine)</h2>
+                    <p id="escape-desc" style="font-size: 0.86rem; line-height: 1.4;">A passenger boat from Tabaco Port travels 12 km North, then turns East and travels 5 km.<br>What is the direct straight-line distance (in km) back to Tabaco Port?</p>
+                    <br>
+                    <div id="escape-input-area">
+                        <input type="number" id="escapeAnswerInput" class="escape-input" placeholder="Enter passcode...">
+                        <br><br>
+                        <button class="btn btn-secondary" onclick="checkEscapeAnswer()">Unlock Room</button>
+                    </div>
+                    <p id="escape-message" style="margin-top: 8px; font-weight: bold; font-size: 0.9rem;"></p>
+                    <div id="escape-hint" class="extra-hint-box"></div>
+
+                    <!-- REWARD VOUCHER CARD -->
+                    <div id="reward-card" class="reward-card">
+                        <h2>🎉 CONGRATULATIONS! 🎉</h2>
+                        <h3>🏆 YOUR GROUP WILL BE REWARDED! 🏆</h3>
+                        <p style="font-size: 0.86rem; line-height: 1.4; color: #f8fafc;">
+                            You cleared all 5 Edu-Escape Rooms and unlocked <strong>The Master Vault</strong>!
+                        </p>
+                        <br>
+                        <div style="background: rgba(15, 23, 42, 0.9); padding: 10px; border-radius: 6px; border: 1px dashed var(--secondary);">
+                            <p style="color: var(--secondary); font-weight: bold; font-size: 0.86rem;">📜 GROUP REWARD VOUCHER</p>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin-top: 3px;">Show this voucher code to your BSED Math instructor to claim your group reward!</p>
+                            <p style="color: var(--primary); font-family: monospace; font-size: 0.95rem; margin-top: 5px;">CODE: <strong>IQUEST-2026-TABACO-MASTER</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB 4: ROUTINE PRACTICE -->
+            <div id="sub-practice-routine" class="sub-section">
+                <h3>Routine Practice Problems (15 Items)</h3>
+                <div id="practice-routine-container"></div>
+            </div>
+
+            <!-- SUB 5: NON-ROUTINE PRACTICE -->
+            <div id="sub-practice-nonroutine" class="sub-section">
+                <h3>Non-Routine Real-Life Practice Problems (10 Items)</h3>
+                <div id="practice-nonroutine-container"></div>
+            </div>
+        </section>
+
+        <!-- VIDEO LESSON SECTION -->
+        <section id="video" class="section">
+            <div class="hero">
+                <h1>Video Lesson Guide</h1>
+                <p>Guided tutorial on routine algorithms and non-routine real-life heuristics.</p>
+            </div>
+
+            <div class="content-card">
+                <h3>Problem-Solving Masterclass</h3>
+                <div class="video-container">
+                    <div class="video-placeholder">
+                        <h3>▶ [ Video Lesson Player ]</h3>
+                        <p style="margin-top: 5px; font-size: 0.8rem; color: #94a3b8;">Topic: Routine vs. Non-Routine Geometry Problem Solving in BSED Education.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about" class="section">
+            <div class="hero">
+                <h1>About IQUEST</h1>
+                <p>Undergraduate thesis research project at Bicol University Tabaco Campus.</p>
+            </div>
+
+            <div class="content-card">
+                <h3>Thesis Project Information</h3>
+                <p><strong>Title:</strong> IQUEST: A Website-Based Learning Tool for Enhancing Problem-Solving and Critical Thinking Skills in Geometry Toward College Readiness Among First-Year BSED Mathematics Students.</p>
+                <p style="margin-top: 6px;"><strong>Institution:</strong> Bicol University Tabaco Campus</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        &copy; 2026, IQUEST
+    </footer>
+
+    <!-- JavaScript Mobile & Background Audio/Canvas Engine -->
+    <script>
+        function toggleMenu() {
+            const nav = document.getElementById('mobileNav');
+            nav.classList.toggle('open');
+        }
+
+        // --- ANIMATED GEOMETRY CANVAS BACKGROUND ENGINE ---
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.9;
+                this.vy = (Math.random() - 0.5) * 0.9;
+                this.size = Math.random() * 20 + 6;
+                this.type = Math.floor(Math.random() * 3);
+                this.color = Math.random() > 0.5 ? 'rgba(0, 240, 255, 0.22)' : 'rgba(251, 191, 36, 0.18)';
+                this.rotation = Math.random() * Math.PI;
+                this.vrot = (Math.random() - 0.5) * 0.015;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += this.vrot;
+                if (this.x < -30) this.x = width + 30;
+                if (this.x > width + 30) this.x = -30;
+                if (this.y < -30) this.y = height + 30;
+                if (this.y > height + 30) this.y = -30;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = this.color;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 1;
+
+                if (this.type === 0) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+                    ctx.fill(); ctx.stroke();
+                } else if (this.type === 1) {
+                    ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+                    ctx.strokeRect(-this.size/2, -this.size/2, this.size, this.size);
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.size/2);
+                    ctx.lineTo(this.size/2, this.size/2);
+                    ctx.lineTo(-this.size/2, this.size/2);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        // Mobile-optimized particle count
+        for (let i = 0; i < 20; i++) { particles.push(new Particle()); }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            let grad = ctx.createLinearGradient(0, 0, width, height);
+            grad.addColorStop(0, '#020617');
+            grad.addColorStop(1, '#0f172a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        // --- CONTINUOUS AMBIENT SYNTH AUDIO ENGINE ---
+        let audioCtx = null;
+        let isAudioMuted = false;
+        let continuousLoopTimer = null;
+        const soundtrackNotes = [261.63, 329.63, 392.00, 493.88, 220.00, 261.63, 329.63, 392.00];
+        let noteIndex = 0;
+
+        function initContinuousAudioEngine() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (!continuousLoopTimer) {
+                continuousLoopTimer = setInterval(() => {
+                    if (isAudioMuted || !audioCtx || audioCtx.state !== 'running') return;
+                    try {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(soundtrackNotes[noteIndex], audioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.0);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 1.0);
+                        noteIndex = (noteIndex + 1) % soundtrackNotes.length;
+                    } catch (e) {}
+                }, 650);
+            }
+        }
+
+        function unlockMobileAudio() {
+            initContinuousAudioEngine();
+            window.removeEventListener('click', unlockMobileAudio);
+            window.removeEventListener('touchstart', unlockMobileAudio);
+        }
+        window.addEventListener('click', unlockMobileAudio);
+        window.addEventListener('touchstart', unlockMobileAudio);
+
+        function toggleContinuousAudio() {
+            isAudioMuted = !isAudioMuted;
+            const btn = document.getElementById('audioToggleBtn');
+            const txt = document.getElementById('audioStatusText');
+            if (isAudioMuted) {
+                btn.classList.add('muted');
+                txt.innerText = 'Music: OFF';
+            } else {
+                btn.classList.remove('muted');
+                txt.innerText = 'Music: ON';
+                initContinuousAudioEngine();
+            }
+        }
+
+        function playClickSound() {
+            if (isAudioMuted || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch (e) {}
+        }
+
+        function switchTab(tabId) {
+            playClickSound();
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById('btn-' + tabId).classList.add('active');
+            document.getElementById('mobileNav').classList.remove('open');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchSubGame(subId) {
+            playClickSound();
+            document.querySelectorAll('.sub-section').forEach(sub => sub.classList.remove('active'));
+            document.querySelectorAll('.sub-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('sub-' + subId).classList.add('active');
+            document.getElementById('sub-btn-' + subId).classList.add('active');
+        }
+
+        function switchGuide(type) {
+            playClickSound();
+            document.getElementById('guide-routine').style.display = type === 'routine' ? 'block' : 'none';
+            document.getElementById('guide-nonroutine').style.display = type === 'nonroutine' ? 'block' : 'none';
+            document.getElementById('guide-btn-routine').classList.toggle('active', type === 'routine');
+            document.getElementById('guide-btn-nonroutine').classList.toggle('active', type === 'nonroutine');
+        }
+
+        // --- ROUTINE QUIZ DATA ---
+        const quizRoutineData = [
+            { q: "What is the sum of interior angles in a triangle?", opts: ["90°", "180°", "360°", "270°"], ans: 1, how: "Interior angles always sum to 180°." },
+            { q: "What is the area of a circle with radius 7 cm? (Use π = 22/7)", opts: ["154 cm²", "44 cm²", "88 cm²", "308 cm²"], ans: 0, how: "Area = πr² = (22/7) × 49 = 154 cm²." },
+            { q: "What do you call a polygon with 5 sides?", opts: ["Hexagon", "Pentagon", "Octagon", "Quadrilateral"], ans: 1, how: "A 5-sided polygon is a pentagon." },
+            { q: "Pythagorean theorem applies to which type of triangle?", opts: ["Equilateral", "Right-angled", "Scalene", "Acute"], ans: 1, how: "Applies to right-angled triangles (a² + b² = c²)." },
+            { q: "What is the volume of a cylinder with radius r and height h?", opts: ["(4/3)πr³", "πr²h", "2πrh", "lw"], ans: 1, how: "Volume = πr²h." },
+            { q: "The sum of interior angles of a quadrilateral is:", opts: ["180°", "360°", "540°", "720°"], ans: 1, how: "(n-2) × 180° = (4-2) × 180° = 360°." },
+            { q: "What is the perimeter of a square with side length 6 cm?", opts: ["12 cm", "24 cm", "36 cm", "18 cm"], ans: 1, how: "Perimeter = 4 × 6 = 24 cm." },
+            { q: "Lines that never intersect and are always equidistant are called:", opts: ["Perpendicular", "Parallel", "Intersecting", "Skew"], ans: 1, how: "Parallel lines." },
+            { q: "An angle measuring exactly 90 degrees is called a:", opts: ["Acute angle", "Obtuse angle", "Right angle", "Straight angle"], ans: 2, how: "Right angle." },
+            { q: "What is the formula for the area of a rectangle?", opts: ["l × w", "½ × b × h", "πr²", "4s"], ans: 0, how: "Area = l × w." },
+            { q: "How many degrees are in a straight angle?", opts: ["90°", "180°", "360°", "270°"], ans: 1, how: "180°." },
+            { q: "What is the hypotenuse if legs are 3 cm and 4 cm?", opts: ["5 cm", "7 cm", "12 cm", "25 cm"], ans: 0, how: "c = √(3² + 4²) = 5 cm." },
+            { q: "A triangle with all three sides equal in length is:", opts: ["Scalene", "Isosceles", "Equilateral", "Right"], ans: 2, how: "Equilateral triangle." },
+            { q: "What is the circumference formula of a circle?", opts: ["πr²", "2πr", "πd²", "4πr²"], ans: 1, how: "Circumference = 2πr." },
+            { q: "In Polya's 4-step strategy, what is the first step?", opts: ["Carry out the plan", "Devise a plan", "Understand the problem", "Look back"], ans: 2, how: "Understand the problem." }
+        ];
+
+        function loadRoutineQuiz() {
+            const container = document.getElementById('quiz-routine-container');
+            const keyContainer = document.getElementById('key-routine-content');
+            let html = '';
+            let keyHtml = '';
+            
+            quizRoutineData.forEach((item, idx) => {
+                html += `<div class="quiz-question-card">
+                    <p><strong>Q${idx+1}:</strong> ${item.q}</p>
+                    <div class="quiz-options">`;
+                item.opts.forEach((opt, optIdx) => {
+                    html += `<label><input type="radio" name="rq_${idx}" value="${optIdx}"> ${String.fromCharCode(65+optIdx)}. ${opt}</label>`;
+                });
+                html += `</div></div>`;
+
+                keyHtml += `<div class="key-item">
+                    <strong>Q${idx+1}:</strong> Correct Answer: <strong>${String.fromCharCode(65+item.ans)}. ${item.opts[item.ans]}</strong><br>
+                    <em>How to Answer:</em> ${item.how}
+                </div>`;
+            });
+            container.innerHTML = html;
+            keyContainer.innerHTML = keyHtml;
+        }
+
+        function submitRoutineQuiz() {
+            playClickSound();
+            let score = 0;
+            quizRoutineData.forEach((item, idx) => {
+                const selected = document.querySelector(`input[name="rq_${idx}"]:checked`);
+                if (selected && parseInt(selected.value) === item.ans) score++;
+            });
+            const res = document.getElementById('routine-quiz-result');
+            res.innerText = `Score: ${score} / 15 (${Math.round((score/15)*100)}%)`;
+            res.style.color = score >= 10 ? '#34d399' : '#f87171';
+            
+            // Automatically reveal Key to Correction
+            document.getElementById('key-correction-routine').style.display = 'block';
+            document.getElementById('key-correction-routine').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- NON-ROUTINE QUIZ DATA ---
+        const quizNonRoutineData = [
+            { q: "Tourists viewing Mayon Volcano from Tabaco observe its peak at 30° elevation. Moving 1 km closer, the angle becomes 45°. Approximately how high is Mayon Volcano?", opts: ["~2.05 km", "~2.73 km", "~3.15 km", "~3.80 km"], ans: 1, how: "h√3 - h = 1 => h = 1 / (1.732 - 1) ≈ 2.73 km." },
+            { q: "An abaca weaver in Tabaco has 40 meters of border material to enclose a rectangular display against a straight wall (no border along wall). What dimensions maximize area?", opts: ["20m by 10m", "15m by 12.5m", "25m by 7.5m", "30m by 5m"], ans: 0, how: "Width = 10m, length = 20m (Area = 200 m²)." },
+            { q: "A Tabaco city tricycle wheel has a diameter of 70 cm. How many complete revolutions does the wheel make when traveling 1 kilometer to BU Tabaco? (Use π ≈ 3.14)", opts: ["318 rev", "455 rev", "500 rev", "625 rev"], ans: 1, how: "C = 219.8 cm. Revolutions = 100,000 / 219.8 ≈ 455 rev." },
+            { q: "Two identical square abaca mats of side 6 cm overlap such that their intersection is a square of side 2 cm. What is total covered floor area?", opts: ["68 cm²", "72 cm²", "64 cm²", "70 cm²"], ans: 0, how: "Area = 36 + 36 - 4 = 68 cm²." },
+            { q: "A 2-meter vertical flagpole near Tabaco City Plaza casts a 3-meter shadow. At the same time, St. John the Baptist Church tower casts a 45-meter shadow. What is tower height?", opts: ["25 m", "30 m", "35 m", "40 m"], ans: 1, how: "(2/3) × 45 = 30 meters." },
+            { q: "First-year BSED Math students construct a triangular wooden board with sides 7 ft, 24 ft, and 25 ft. What is the length of the perpendicular support beam from right angle to hypotenuse?", opts: ["6.00 ft", "6.72 ft", "7.15 ft", "8.00 ft"], ans: 1, how: "Area = 84. Support beam h = 168 / 25 = 6.72 ft." },
+            { q: "A circular stone fountain in Tabaco Plaza has a radius of 6 meters. A paved walkway of uniform width is built around it, doubling total area. What is approximate walkway width?", opts: ["1.75 m", "2.48 m", "3.00 m", "4.20 m"], ans: 1, how: "Total radius R = √72 ≈ 8.485m. Width = 8.485 - 6 ≈ 2.48m." },
+            { q: "A bakeshop in Tabaco packages brittle in open rectangular boxes made from 20 cm by 20 cm tin sheets by cutting equal squares of side x from each corner. What cut size x maximizes volume?", opts: ["2.50 cm", "3.33 cm", "4.00 cm", "5.00 cm"], ans: 1, how: "Derivative V'(x) = 0 gives x = 10/3 ≈ 3.33 cm." },
+            { q: "A classroom floor in Tabaco measures 4m by 6m. How many 50cm × 50cm square tiles are required with zero wastage?", opts: ["48 tiles", "96 tiles", "100 tiles", "120 tiles"], ans: 1, how: "Tiles = (400/50) × (600/50) = 8 × 12 = 96 tiles." },
+            { q: "A delivery van travels from Tabaco to Legazpi maintaining 60 km/h and arrives in 30 minutes. What is straight-line displacement if coastal road curves by 15%?", opts: ["26.1 km", "30.0 km", "34.5 km", "38.0 km"], ans: 0, how: "Curved distance = 30 km. Straight displacement = 30 / 1.15 ≈ 26.1 km." }
+        ];
+
+        function loadNonRoutineQuiz() {
+            const container = document.getElementById('quiz-nonroutine-container');
+            const keyContainer = document.getElementById('key-nonroutine-content');
+            let html = '';
+            let keyHtml = '';
+            
+            quizNonRoutineData.forEach((item, idx) => {
+                html += `<div class="quiz-question-card">
+                    <p><strong>NR-Q${idx+1}:</strong> ${item.q}</p>
+                    <div class="quiz-options">`;
+                item.opts.forEach((opt, optIdx) => {
+                    html += `<label><input type="radio" name="nrq_${idx}" value="${optIdx}"> ${String.fromCharCode(65+optIdx)}. ${opt}</label>`;
+                });
+                html += `</div></div>`;
+
+                keyHtml += `<div class="key-item">
+                    <strong>NR-Q${idx+1}:</strong> Correct Answer: <strong>${String.fromCharCode(65+item.ans)}. ${item.opts[item.ans]}</strong><br>
+                    <em>How to Answer:</em> ${item.how}
+                </div>`;
+            });
+            container.innerHTML = html;
+            keyContainer.innerHTML = keyHtml;
+        }
+
+        function submitNonRoutineQuiz() {
+            playClickSound();
+            let score = 0;
+            quizNonRoutineData.forEach((item, idx) => {
+                const selected = document.querySelector(`input[name="nrq_${idx}"]:checked`);
+                if (selected && parseInt(selected.value) === item.ans) score++;
+            });
+            const res = document.getElementById('nonroutine-quiz-result');
+            res.innerText = `Score: ${score} / 10 (${Math.round((score/10)*100)}%)`;
+            res.style.color = score >= 7 ? '#34d399' : '#f87171';
+            
+            // Automatically reveal Key to Correction
+            document.getElementById('key-correction-nonroutine').style.display = 'block';
+            document.getElementById('key-correction-nonroutine').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- ESCAPE ROOM ---
+        let escapeStage = 1;
+        const escapeRooms = [
+            {
+                title: "🚪 Room 1: Tabaco Port Ferry Gate (Routine)",
+                desc: "A boat from Tabaco Port travels 12 km North, then turns East for 5 km.<br>What is the direct distance (in km) back to Tabaco Port?",
+                ans: "13",
+                hint: "💡 Hint: Use $a^2 + b^2 = c^2$. Calculate $\\sqrt{12^2 + 5^2}$."
+            },
+            {
+                title: "🚪 Room 2: St. John Church Roof Angle (Routine)",
+                desc: "The triangular pediment of St. John Church in Tabaco has base angles measuring 55° each.<br>What is the top apex angle measure (in degrees)?",
+                ans: "70",
+                hint: "💡 Hint: Triangle angles sum to 180°. Subtract $(55° + 55°)$ from 180°."
+            },
+            {
+                title: "🚪 Room 3: Tabaco Public Market Fencing (Non-Routine)",
+                desc: "A vendor has 40 meters of mesh to enclose a rectangular stall against a solid concrete wall (no mesh along wall).<br>What is the maximum area (in m²)?",
+                ans: "200",
+                hint: "💡 Hint: $A = x(40 - 2x)$. Maximum area occurs at vertex $x = 10$m ($10 \\times 20 = 200$)."
+            },
+            {
+                title: "🚪 Room 4: Tabaco Tricycle Wheel Distance (Non-Routine)",
+                desc: "A tricycle wheel has a 70 cm diameter. How many complete revolutions does it make in traveling 2.2 kilometers to BU Tabaco? (Use π ≈ 22/7)",
+                ans: "1000",
+                hint: "💡 Hint: $C = \\pi d = (22/7) \\times 70 = 220$ cm. $220,000 / 220 = 1000$ revolutions."
+            },
+            {
+                title: "🚪 Room 5: BU Tabaco Display Board (Non-Routine)",
+                desc: "Students construct a triangular board with sides 7 ft, 24 ft, and 25 ft.<br>What is the length (in ft) of the support beam dropped from right angle to hypotenuse?",
+                ans: "6.72",
+                hint: "💡 Hint: Area equivalence: $\\frac{1}{2} \\times 7 \\times 24 = \\frac{1}{2} \\times 25 \\times h$. Solve $h = 168 / 25 = 6.72$ ft."
+            },
+            {
+                title: "👑 SECRET MASTER VAULT: Mayon Coordinate Challenge",
+                desc: "Towers viewing Mayon form an equilateral triangle with side lengths of 12 km.<br>What is the total area (in km², rounded to 2 decimal places)? (Use $\\sqrt{3} \\approx 1.732$)",
+                ans: "62.35",
+                hint: "💡 Hint: $A = \\frac{\\sqrt{3}}{4} s^2 = \\frac{1.732}{4} \\times 144 = 62.352$ km²."
+            }
+        ];
+
+        function checkEscapeAnswer() {
+            playClickSound();
+            const val = document.getElementById('escapeAnswerInput').value.trim();
+            const msg = document.getElementById('escape-message');
+            const title = document.getElementById('escape-title');
+            const desc = document.getElementById('escape-desc');
+            const inputArea = document.getElementById('escape-input-area');
+            const hintBox = document.getElementById('escape-hint');
+            const rewardCard = document.getElementById('reward-card');
+
+            const current = escapeRooms[escapeStage - 1];
+
+            if (val === current.ans) {
+                msg.style.color = "#34d399";
+                msg.innerText = `Correct Passcode! Unlocking next room...`;
+                hintBox.style.display = "none";
+                escapeStage++;
+
+                if (escapeStage <= escapeRooms.length) {
+                    setTimeout(() => {
+                        const nextRoom = escapeRooms[escapeStage - 1];
+                        title.innerText = nextRoom.title;
+                        desc.innerHTML = nextRoom.desc;
+                        document.getElementById('escapeAnswerInput').value = "";
+                        msg.innerText = "";
+                    }, 900);
+                } else {
+                    setTimeout(() => {
+                        title.innerText = "🏆 MASTER VAULT UNLOCKED!";
+                        desc.innerHTML = "You cleared all Edu-Escape Rooms!";
+                        inputArea.style.display = "none";
+                        msg.innerText = "";
+                        rewardCard.style.display = "block";
+                    }, 800);
+                }
+            } else {
+                msg.style.color = "#f87171";
+                msg.innerText = "Wrong Passcode! Try again.";
+                hintBox.style.display = "block";
+                hintBox.innerHTML = current.hint;
+            }
+        }
+
+        // --- PRACTICE PROBLEMS ---
+        const practiceRoutineData = [
+            { p: "Find the perimeter of a rectangle with length 12 cm and width 5 cm.", ans: "34 cm", how: "Perimeter = 2(l + w) = 34 cm." },
+            { p: "What is the area of a circle with a radius of 7 cm? (Use π ≈ 22/7)", ans: "154 cm²", how: "Area = πr² = 154 cm²." },
+            { p: "Find the hypotenuse of a right triangle with legs of 6 cm and 8 cm.", ans: "10 cm", how: "c = √(6² + 8²) = 10 cm." },
+            { p: "What is the area of a triangle with base 10 cm and height 5 cm?", ans: "25 cm²", how: "Area = ½ × 10 × 5 = 25 cm²." },
+            { p: "Find the volume of a cylinder with radius 3 cm and height 10 cm. (Use π ≈ 3.14)", ans: "282.6 cm³", how: "Volume = 3.14 × 9 × 10 = 282.6 cm³." }
+        ];
+
+        function loadRoutinePractice() {
+            const container = document.getElementById('practice-routine-container');
+            let html = '';
+            practiceRoutineData.forEach((item, idx) => {
+                html += `<div class="problem-item">
+                    <h4>Routine Problem ${idx+1}:</h4>
+                    <p>${item.p}</p>
+                    <button class="btn" style="padding: 6px 10px; font-size: 0.8rem; margin-top: 6px;" onclick="toggleSolution('rsol_${idx}')">Show Solution</button>
+                    <div id="rsol_${idx}" class="solution-box">
+                        <strong>Answer:</strong> ${item.ans}<br>
+                        <strong>How:</strong> ${item.how}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        const practiceNonRoutineData = [
+            { p: "A vendor at Tabaco Market has 40 meters of wire mesh to enclose a rectangular stall against a concrete wall (no mesh along wall). What dimensions maximize area?", ans: "20m by 10m (Area = 200 m²)", how: "Width = x, length = 40 - 2x. Maximum at x = 10m." },
+            { p: "A Tabaco tricycle wheel has a diameter of 70 cm. How many complete revolutions does it make traveling 2.2 kilometers to BU Tabaco? (Use π ≈ 22/7)", ans: "1000 revolutions", how: "C = 220 cm. Revolutions = 220,000 / 220 = 1000." },
+            { p: "First-year BSED Math students construct a triangular board with sides 7 ft, 24 ft, and 25 ft. What is the length of the perpendicular support beam from right angle to hypotenuse?", ans: "6.72 ft", how: "h = (2 × Area) / 25 = 168 / 25 = 6.72 ft." }
+        ];
+
+        function loadNonRoutinePractice() {
+            const container = document.getElementById('practice-nonroutine-container');
+            let html = '';
+            practiceNonRoutineData.forEach((item, idx) => {
+                html += `<div class="problem-item">
+                    <h4>Non-Routine Problem ${idx+1}:</h4>
+                    <p>${item.p}</p>
+                    <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.8rem; margin-top: 6px;" onclick="toggleSolution('nrsol_${idx}')">Show Solution</button>
+                    <div id="nrsol_${idx}" class="solution-box">
+                        <strong>Answer:</strong> ${item.ans}<br>
+                        <strong>How:</strong> ${item.how}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function toggleSolution(id) {
+            playClickSound();
+            const box = document.getElementById(id);
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        }
+
+        window.onload = () => {
+            loadRoutineQuiz();
+            loadNonRoutineQuiz();
+            loadRoutinePractice();
+            loadNonRoutinePractice();
+        };
+    </script>
+</body>
+</html>
